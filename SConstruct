@@ -1,5 +1,5 @@
 # SConstruct
-# Copyright (C) 1999-2007 Eicke Godehardt
+# Copyright (C) 1999-2010 Eicke Godehardt
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -12,13 +12,13 @@
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-# MA 02111-1307, USA.
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
 
 import os
 
-version = '3.1.1'
+version = '3.6.3pre'
 
 # Stores signatures in ".sconsign.dbm"
 # in the top-level SConstruct directory.
@@ -31,54 +31,121 @@ Help ('''Options:
   DESTDIR=/                   Real installation path DESTDIR + PREFIX
                               (this option is only for packaging)''')
 
-prefix      = ARGUMENTS.get ('PREFIX', '/usr')
-install_dir = ARGUMENTS.get ('DESTDIR', '') + prefix
-pixmap_dir  = '/share/pixmaps'
-doc_dir     = '/share/doc/glosung-' + version
+env = Environment (
+  LINK      = 'gcc',
+  CC        = 'gcc',
+  CPPPATH   = '',
+  LINKFLAGS = '',
+  CCFLAGS   = '',
+  ENV       = os.environ,
+  TARFLAGS  = '-c -j')
+
+
+if env['PLATFORM'] == 'win32':
+	prefix      = ARGUMENTS.get ('PREFIX', '')
+	install_dir = ARGUMENTS.get ('DESTDIR', '')
+	pixmap_dir  = ''
+	data_dir    = '.'
+	doc_dir     = ''
+else:
+	prefix      = ARGUMENTS.get ('PREFIX', '/usr')
+	install_dir = ARGUMENTS.get ('DESTDIR', '')
+	pixmap_dir  = prefix + '/share/glosung/'
+	data_dir    = prefix + '/share/glosung'
+	doc_dir     = '/share/doc/glosung-' + version
+
 
 BuildDir ('build', 'src')
 
 cpppath = ['#', '#build']
-ccflags   = '-Wall -O2 -g -DGLOSUNG_DATA_DIR=\\"' + prefix + '/share/glosung\\" \
-            `pkg-config --cflags gtk+-2.0 libxml-2.0 gconf-2.0 libcurl` \
-            -DVERSION=\\"' + version + '\\"  \
-            -DPACKAGE_PIXMAPS_DIR=\\"' + prefix + pixmap_dir + '\\"'
-linkflags = '-Wl,--export-dynamic  -L/usr/lib \
-             `pkg-config --libs gtk+-2.0 libxml-2.0 gconf-2.0 libcurl`'
+ccflags   = ['-O2', '-std=c99', '-Wall', '-g', '-Wl,--export-dynamic',
+#		'-DLIBXML_STATIC',
+		'-DVERSION=\\"' + version + '\\"',
+		'-DGLOSUNG_DATA_DIR=\\"' + data_dir + '\\"',
+		'-DPACKAGE_PIXMAPS_DIR=\\"' + pixmap_dir + '\\"']
+
+linkflags = ['-Wl,--export-dynamic', '-L.']
+#  -L/usr/lib'
+#             `pkg-config --libs gtk+-2.0 libxml-2.0 gconf-2.0 libcurl`
+             
 
 if ARGUMENTS.get ('profile'):
-    ccflags   += ' -pg -fprofile-arcs'
-    linkflags += ' -pg -fprofile-arcs'
+    ccflags.append   ('-pg', '-fprofile-arcs')
+    linkflags.append ('-pg', '-fprofile-arcs')
+
+if env['PLATFORM'] != 'win32':
+        linkflags.append ('-Wl,--as-needed')
 
 #if not (ARGUMENTS.get ('dev')):
 if (ARGUMENTS.get ('dev')):
-    ccflags   += ' -Werror -DG_DISABLE_DEPRECATED -DGTK_DISABLE_DEPRECATED -DGNOME_DISABLE_DEPRECATED'
+    ccflags   += [
+    	 '-Werror',
+         '-pedantic',
+    	 '-DG_DISABLE_DEPRECATED', '-DGDK_PIXBUF_DISABLE_DEPRECATED',
+     	 '-DGDK_DISABLE_DEPRECATED', '-DGTK_DISABLE_DEPRECATED']
+else:
+    ccflags   += [
+		'-DG_DISABLE_ASSERT']
 
-env = Environment (
-  platform  = 'posix',
-  LINK      = 'gcc',
-  CC        = 'gcc',
+tar_file = '#../glosung-' + version + '.tar.bz2'
+
+env.Append (
   CPPPATH   = cpppath,
   LINKFLAGS = linkflags,
-  CCFLAGS   = ccflags,
-  ENV       = os.environ)
+  CCFLAGS   = ccflags)
 
-Export ('env cpppath ccflags install_dir pixmap_dir')
+if env['PLATFORM'] == 'win32':
+        env.ParseConfig ('pkg-config gtk+-2.0 libxml-2.0 libcurl --cflags --libs')
+        Tool('mingw')(env)
+else:
+        env.ParseConfig('pkg-config gtk+-2.0 libxml-2.0 gconf-2.0 gmodule-export-2.0 libcurl --cflags --libs')
+#        Tool('posix')(env)
+
+
+conf = Configure (env)
+if not conf.CheckLib ('libxml2'):
+	print 'Did not find libxml2.a or xml2.lib, exiting!'
+
+Export ('env cpppath ccflags install_dir prefix pixmap_dir tar_file')
 
 SConscript ('build/SConscript')
 SConscript ('po/SConscript')
 
 env.Alias ('install', install_dir)
+env.Alias ('package', tar_file)
 
-env.Install (dir = install_dir + doc_dir,
+env.Install (dir = install_dir + prefix + doc_dir,
           source = ['AUTHORS', 'COPYING', 'ChangeLog', 'INSTALL', 'README'])
-env.Install (dir = install_dir + doc_dir,
-          source = ['ENhhut.txt', 'ENhist.txt', 'ENintro.txt', 'ENlicens.txt'])
 
-env.Install (dir = install_dir + '/share/applications',
+env.Install (dir = install_dir + prefix + '/share/applications',
           source = 'glosung.desktop')
-env.Install (dir = install_dir + pixmap_dir, source = 'glosung.png')
-env.Install (dir = install_dir + pixmap_dir, source = 'glosung-big.png')
+env.Install (dir = install_dir + pixmap_dir,
+        source = ['herrnhut.png', 'glosung.png', 'glosung-big.png'])
+env.Install (dir = install_dir + data_dir,
+        source = ['ui/add_language.glade', 'ui/preferences.glade', 'ui/warning_dialog.glade'])
+
+# TODO put everything into a folder "glosung-<VERSION>" and rename build to src
+if env['PLATFORM'] != 'win32':
+	env.Tar (tar_file, ['AUTHORS',
+                    'COPYING',
+                    'ChangeLog',
+                    'INSTALL',
+                    'NEWS',
+                    'README',
+                    'SConstruct',
+                    'herrnhut.png',
+                    'glosung-big.png',
+                    'glosung.desktop',
+                    'glosung.png',
+                    'ui/add_language.glade',
+                    'ui/preferences.glade',
+                    'ui/warning_dialog.glade',
+                    'debian/glosung.files',
+                    'debian/control',
+                    'debian/changelog',
+                    'debian/copyright',
+                    'debian/rules',
+                    'rpm/glosung.spec'])
 
 # dpkg-buildpackage -tc -us -uc -rfakeroot
 # rpmbuild -ba rpm/glosung.spec

@@ -1,5 +1,5 @@
 /* glosung.h
- * Copyright (C) 1999-2007 Eicke Godehardt
+ * Copyright (C) 1999-2010 Eicke Godehardt
 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -12,9 +12,8 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston,
- * MA 02111-1307, USA.
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
 #ifndef GLOSUNG_PARSER__H
@@ -44,11 +43,9 @@ struct _Losung {
 };
 
 
-/****************************\
-      Function prototypes
-\****************************/
-
-void          losung_free (const Losung *ww);
-const Losung *get_losung  (GDate *date, gchar *lang);
+void          losung_free     (const Losung *ww);
+const Losung *get_orig_losung (GDate *date, gchar *lang);
+const Losung *get_losung      (GDate *date, gchar *lang);
+const Losung *get_the_word    (GDate *date, gchar *lang);
 
 #endif /* GLOSUNG_PARSER__H */

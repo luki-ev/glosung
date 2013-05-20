@@ -1,5 +1,5 @@
 # SConstruct
-# Copyright (C) 1999-2007 Eicke Godehardt
+# Copyright (C) 1999-2010 Eicke Godehardt
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -12,13 +12,34 @@
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-# MA 02111-1307, USA.
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-Import ('env install_dir')
 
-glosung = env.Program ('glosung', ['glosung.c', 'parser.c',
-                                'download.c', 'losunglist.c'])
-losung  = env.Program ('losung', ['losung.c', 'parser.c'])
-env.Install (dir = install_dir + '/bin', source = [losung, glosung])
+Import ('env install_dir tar_file prefix')
+
+# test = env.Program ('test', ['test-autostart.c', 'autostart.c'])
+
+glosung = env.Program ('glosung', ['glosung.c', 'parser.c', 'autostart.c',
+             'download.c', 'collections.c', 'about.c', 'util.c', 'settings.c'])
+losung  = env.Program ('losung', ['losung.c', 'parser.c', 'util.c', 'settings.c'])
+env.Install (dir = install_dir + prefix + '/bin', source = [losung, glosung])
+
+if env['PLATFORM'] != 'win32':
+	env.Tar (tar_file, ['SConscript',
+                    'about.c',
+                    'about.h',
+                    'autostart.c',
+                    'autostart.h',
+                    'download.c',
+                    'download.h',
+                    'glosung.c',
+                    'losung.c',
+                    'collections.c',
+                    'collections.h',
+                    'parser.c',
+                    'parser.h',
+                    'settings.c',
+                    'settings.h',
+                    'util.c',
+                    'util.h'])

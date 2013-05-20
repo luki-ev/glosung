@@ -1,5 +1,5 @@
-/* download.h
- * Copyright (C) 2006-2010 Eicke Godehardt
+/* autostart.h
+ * Copyright (C) 2008-2010 Eicke Godehardt
 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,16 +16,20 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef GLOSUNG_DOWNLOAD__H
-#define GLOSUNG_DOWNLOAD__H
+#ifndef GLOSUNG_AUTOSTART__H
+#define GLOSUNG_AUTOSTART__H
 
 #include <glib.h>
-#include "collections.h"
+
+typedef enum {
+	GLOSUNG_NO_AUTOSTART   = 0,
+	GLOSUNG_AUTOSTART      = 1,
+	GLOSUNG_AUTOSTART_ONCE = (GLOSUNG_AUTOSTART << 1) + 1
+} GLosungAutostartType;
+
+GLosungAutostartType  is_in_autostart       ();
+gboolean              add_to_autostart      (gboolean once);
+gboolean              remove_from_autostart ();
 
 
-int download                (const Source *cs, const gchar *lang, guint year);
-int get_bible20_collections (Source* cs);
-
-const gchar* get_last_error_message   ();
-
-#endif /* GLOSUNG_DOWNLOAD__H */
+#endif /* GLOSUNG_AUTOSTART__H */

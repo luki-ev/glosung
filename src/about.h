@@ -1,5 +1,5 @@
-/* download.h
- * Copyright (C) 2006-2010 Eicke Godehardt
+/* about.h
+ * Copyright (C) 2007-2010 Eicke Godehardt
 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,16 +16,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef GLOSUNG_DOWNLOAD__H
-#define GLOSUNG_DOWNLOAD__H
+#ifndef GLOSUNG_ABOUT__H
+#define GLOSUNG_ABOUT__H
 
-#include <glib.h>
-#include "collections.h"
+#include <gtk/gtk.h>
 
 
-int download                (const Source *cs, const gchar *lang, guint year);
-int get_bible20_collections (Source* cs);
+void about          (GtkWidget *app);
+void about_herrnhut (GtkWidget *app);
 
-const gchar* get_last_error_message   ();
-
-#endif /* GLOSUNG_DOWNLOAD__H */
+#endif /* GLOSUNG_ABOUT__H */

@@ -1,5 +1,5 @@
 /* losung.c
- * Copyright (C) 2006-2007 Eicke Godehardt
+ * Copyright (C) 2006-2010 Eicke Godehardt
 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -12,10 +12,12 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston,
- * MA 02111-1307, USA.
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
+
+#define ENABLE_NLS
+#define PACKAGE "glosung"
 
 #include "parser.h"
 
@@ -24,10 +26,12 @@
 #include <unistd.h>
 #include <stdio.h>
 
-#include <gconf/gconf-client.h>
-
 #include <glib/gi18n.h>
 #include <glib/goption.h>
+
+#include "util.h"
+#include "settings.h"
+
 
 #define PACKAGE "glosung"
 
@@ -37,7 +41,7 @@
 \****************************/
 
 static GDate *date;
-static gchar *lang;
+static gchar *lang = NULL;
 static gchar *date_param = NULL;
 
 
@@ -45,13 +49,15 @@ static gchar *date_param = NULL;
       Function prototypes
 \****************************/
 
-static void       get_time              (void);
-static void       show_text             (void);
+static void get_time    (void);
+static void show_text   (void);
 
 
 static GOptionEntry entries[] = {
-  { "language", 'l', 0, G_OPTION_ARG_STRING, &lang, "language of watch word", "de" },
-  { "date", 0, 0, G_OPTION_ARG_STRING, &date_param, "set date absolute or relative, e.g., +1, -2m", "2007-08-05" },
+  { "language", 'l', 0, G_OPTION_ARG_STRING, &lang,
+    "language of watch word", "de" },
+  { "date", 0, 0, G_OPTION_ARG_STRING, &date_param,
+    "set date absolute or relative, e.g., +1, -2m", "2008-08-05" },
   { NULL }
 };
 
@@ -65,9 +71,11 @@ main (int argc, char **argv)
         GError *error = NULL;
         GOptionContext *context;
 
-        GConfClient *client = gconf_client_get_default ();
-        lang = gconf_client_get_string
-                (client, "/apps/" PACKAGE "/language", NULL);
+        bindtextdomain (PACKAGE, "/usr/share/locale");
+        bind_textdomain_codeset (PACKAGE, "UTF-8");
+        textdomain (PACKAGE);
+
+        lang = get_language ();
         if (lang == NULL) {
                 lang = "de";
         }
@@ -135,9 +143,18 @@ static void
 show_text (void)
 {
         const Losung *ww;
-        // guint i;
 
-        ww = get_losung (date, lang);
+        ww = get_orig_losung (date, lang);
+        if (! ww) {
+                ww = get_losung (date, lang);
+                if (! ww) {
+                        ww = get_the_word (date, lang);
+                }
+        } else {
+        	wrap_text (ww->ot.text, 50);
+        	wrap_text (ww->nt.text, 50);
+        }
+
         if (ww == NULL) {
                 printf (_("No '%s' texts found for %d!\n"),
                         lang, g_date_get_year (date));
