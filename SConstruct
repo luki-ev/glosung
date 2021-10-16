@@ -127,7 +127,6 @@ if env['PLATFORM'] != 'win32':
                     'COPYING',
                     'ChangeLog',
                     'INSTALL',
-                    'NEWS',
                     'README',
                     'SConstruct',
                     'herrnhut.png',
