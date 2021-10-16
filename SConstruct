@@ -48,7 +48,7 @@ if env['PLATFORM'] == 'win32':
 	doc_dir     = ''
 else:
 	prefix      = ARGUMENTS.get ('PREFIX', '/usr')
-	install_dir = ARGUMENTS.get ('DESTDIR', '')
+	install_dir = ARGUMENTS.get ('DESTDIR', '/')
 	pixmap_dir  = prefix + '/share/glosung/'
 	data_dir    = prefix + '/share/glosung'
 	doc_dir     = '/share/doc/glosung-' + version
