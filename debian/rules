@@ -36,7 +36,7 @@ binary-arch: install
 	dh_installdebconf
 	dh_installdocs 
 	dh_installmenu
-	dh_undocumented -p glosung	glosung.1
+#	dh_undocumented -p glosung	glosung.1
 	dh_installchangelogs
 	dh_link
 	dh_strip
